@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#242424">
+  <title>AI Model Card Shop</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; overscroll-behavior: none; background: #242424; color: #fff3d4; font: 16px system-ui, sans-serif; }
+    body { position: fixed; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+    #game { position: absolute; top: env(safe-area-inset-top, 0px); right: env(safe-area-inset-right, 0px); bottom: env(safe-area-inset-bottom, 0px); left: env(safe-area-inset-left, 0px); }
+    #canvas { width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
+    #status { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px; text-align: center; background: #242424; }
+    #status[hidden] { display: none; }
+    h1 { color: #f4bb29; font-size: clamp(24px, 4vw, 44px); margin: 0; }
+    progress { width: min(80vw, 540px); height: 24px; accent-color: #f4bb29; }
+    #notice { max-width: 640px; white-space: pre-wrap; }
+  </style>
+  <link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+</head>
+<body>
+  <main id="game">
+    <canvas id="canvas" tabindex="0" aria-label="AI Model Card Shop. Drag to move, pinch to zoom."></canvas>
+    <section id="status" role="status" aria-live="polite">
+      <h1>AI MODEL CARD SHOP</h1>
+      <progress id="progress" aria-label="Loading game"></progress>
+      <div id="notice">Loading your shop…</div>
+      <noscript>This game requires JavaScript.</noscript>
+    </section>
+  </main>
+  <script src="index.js"></script>
+  <script src="pck_loader.js"></script>
+  <script>
+    const config = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":197059464,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+    config.canvasResizePolicy = 0;
+    config.persistentPaths = ['/userfs'];
+    const canvas = document.getElementById('canvas');
+    const game = document.getElementById('game');
+    const status = document.getElementById('status');
+    const progress = document.getElementById('progress');
+    const notice = document.getElementById('notice');
+    function resize() {
+      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.max(1, Math.round(game.clientWidth * ratio));
+      canvas.height = Math.max(1, Math.round(game.clientHeight * ratio));
+    }
+    new ResizeObserver(resize).observe(game);
+    resize();
+    document.addEventListener('gesturestart', event => event.preventDefault(), { passive: false });
+    let packLoaded = 0;
+    let packTotal = 0;
+    let wasmLoaded = 0;
+    const wasmTotal = config.fileSizes[config.executable + '.wasm'] || 0;
+    function loadingProgress() {
+      const total = packTotal + wasmTotal;
+      const current = packLoaded + Math.min(wasmLoaded, wasmTotal);
+      if (packTotal > 0 && total > 0) {
+        progress.max = total;
+        progress.value = current;
+        notice.textContent = 'Loading your shop… ' + Math.round(current / total * 100) + '%';
+      }
+    }
+    config.onProgress = function (current) {
+      wasmLoaded = current;
+      loadingProgress();
+    };
+    const engine = new Engine(config);
+    async function startSplitGame() {
+      const packName = config.mainPack || config.executable + '.pck';
+      const [pack] = await Promise.all([
+        loadSplitPack(packName, (current, total) => {
+          packLoaded = current;
+          packTotal = total;
+          loadingProgress();
+        }),
+        engine.init(config.executable)
+      ]);
+      await engine.preloadFile(pack, packName);
+      notice.textContent = 'Starting your shop…';
+      await engine.start({ args: ['--main-pack', packName].concat(config.args || []) });
+    }
+    function failure(error) {
+      console.error(error);
+      status.hidden = false;
+      progress.hidden = true;
+      notice.textContent = String(error.message || error);
+    }
+    const missing = Engine.getMissingFeatures({ threads: false });
+    if (missing.length) {
+      failure('Your browser is missing: ' + missing.join(', '));
+    } else {
+      startSplitGame().then(() => { status.hidden = true; }, failure);
+    }
+  </script>
+</body>
+</html>
+

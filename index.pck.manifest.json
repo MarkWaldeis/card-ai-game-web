@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "size": 197059464,
+  "part_count": 3,
+  "parts": [
+    {
+      "file": "index.pck.part0",
+      "size": 90000000
+    },
+    {
+      "file": "index.pck.part1",
+      "size": 90000000
+    },
+    {
+      "file": "index.pck.part2",
+      "size": 17059464
+    }
+  ]
+}
