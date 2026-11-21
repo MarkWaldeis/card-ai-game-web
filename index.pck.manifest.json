@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "size": 197109620,
+  "size": 197178556,
   "part_count": 3,
   "parts": [
     {
@@ -13,7 +13,7 @@
     },
     {
       "file": "index.pck.part2",
-      "size": 17109620
+      "size": 17178556
     }
   ]
 }
